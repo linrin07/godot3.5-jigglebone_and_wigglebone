@@ -163,7 +163,7 @@ transform = Transform( 1, -5.32907e-15, 0, 0, 1, -2.30926e-14, 0, -3.55271e-15, 
 shape = SubResource( 9 )
 
 [node name="Jigglebone1" type="Spatial" parent="Spatial/test/Armature/Skeleton"]
-transform = Transform( 1, 2.4869e-14, 2.38418e-07, -8.24058e-08, -0.938369, 0.345635, 2.23724e-07, -0.345635, -0.938369, 1.20792e-13, 2.40478, -0.792652 )
+transform = Transform( 1, -3.55271e-14, 2.38418e-07, -8.24063e-08, -0.938368, 0.345637, 2.23724e-07, -0.345637, -0.938368, 1.74083e-13, 2.40478, -0.792654 )
 script = ExtResource( 1 )
 bone_name = "jiggle_bone1"
 stiffness = 1.0
@@ -175,7 +175,7 @@ bone_y_plus = 1.0
 collision_shape = NodePath("../BoneAttachment/CollisionShape")
 
 [node name="Jigglebone2CS" type="Spatial" parent="Spatial/test/Armature/Skeleton"]
-transform = Transform( 1, -5.9508e-14, 2.38419e-07, -1.65887e-08, -0.997577, 0.0695777, 2.37841e-07, -0.0695777, -0.997577, -2.80664e-13, 1.48008, -1.08332 )
+transform = Transform( 1, 2.20268e-13, 2.38418e-07, -1.68128e-08, -0.99751, 0.0705188, 2.37825e-07, -0.0705188, -0.99751, 1.59872e-13, 1.48008, -1.08451 )
 script = ExtResource( 4 )
 bone_name = "jiggle_bone2"
 stiffness = 1.0
@@ -187,7 +187,7 @@ bone_y_plus = 1.0
 collision_shape = NodePath("../BoneAttachment2/CollisionShape2")
 
 [node name="Wigglebone" type="BoneAttachment" parent="Spatial/test/Armature/Skeleton"]
-transform = Transform( 1, 4.26326e-14, 1.50996e-07, 1.50996e-07, -3.57628e-07, -1, 7.10543e-15, 1, -3.57628e-07, 5.35164e-13, 1.49354, 0.40898 )
+transform = Transform( 1, 4.26326e-14, 1.50996e-07, 1.50996e-07, -3.57628e-07, -1, 7.10543e-15, 1, -3.57628e-07, 5.35874e-13, 1.49038, 0.40898 )
 bone_name = "wiggle_bone"
 script = ExtResource( 3 )
 stiffness = 0.2
