@@ -1,5 +1,5 @@
 tool
-class_name Jigglebone extends Spatial
+extends Spatial
 
 enum Axis {
 	X_Plus, Y_Plus, Z_Plus, X_Minus, Y_Minus, Z_Minus
@@ -14,7 +14,8 @@ export var use_gravity = false
 export var gravity = Vector3(0.0, -9.81, 0.0)
 export(Axis) var forward_axis = Axis.Z_Minus
 export(float, 0.0,1.0,0.001) var bone_y_plus = 0.1
-export(float, 0.0, 100.0, 1.0) var apply_percent = 80.0
+export(float, 0.0, 100.0, 0.1) var apply_percent = 80.0
+export(float, 0.0, 100.0, 0.01) var limitation = 10.0
 
 export var collision_shape: NodePath
 var collision_sphere: CollisionShape
@@ -23,7 +24,7 @@ var collision_sphere: CollisionShape
 var prev_pos = Vector3()
 
 # Rest length of the distance constraint
-var rest_length = 1
+var rest_length: float = 1.0
 
 export var skip_frame: int = 0
 var frame: int = 0
@@ -48,11 +49,12 @@ func _ready() -> void:
 		set_collision_shape(collision_shape)
 		
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	frame += 1
 	if frame > skip_frame:
 		frame = 0
-		process(delta * float(1+skip_frame))
+#		process(delta * float(1+skip_frame))
+		call_deferred("process", delta * float(1+skip_frame))
 
 func process(delta: float) -> void:
 	if not enable:
@@ -83,9 +85,7 @@ func process(delta: float) -> void:
 		skeleton = get_parent()
 		bone_id = skeleton.find_bone(bone_name)
 		bone_id_parent = skeleton.get_bone_parent(bone_id)
-		
 	
-		
 		
 	# Note:
 	# Local space = local to the bone
@@ -106,6 +106,9 @@ func process(delta: float) -> void:
 	# If not using gravity, apply force in the direction of the bone (so it always wants to point "forward")
 	var grav: Vector3 = bone_transf_rest_world.basis.xform(Vector3(0, 0, -1)).normalized() * 9.81
 	var vel: Vector3 = (global_transform.origin - prev_pos) / delta
+	if vel.x != vel.x:
+		vel = Vector3.ZERO
+		return
 	
 	if use_gravity:
 		grav = gravity * gravity_scale
@@ -113,6 +116,9 @@ func process(delta: float) -> void:
 	grav *= stiffness
 	vel += grav 
 	vel -= vel * damping * delta  # Damping
+	vel = vel.limit_length(limitation)
+#	if vel.length() > limitation:
+#		print(vel.length())
 	
 	prev_pos = global_transform.origin
 	global_transform.origin = global_transform.origin + vel * delta
@@ -129,10 +135,16 @@ func process(delta: float) -> void:
 #		var test_vec: Vector3 = goal_pos - collision_sphere.global_transform.origin
 #		print(collision_sphere.global_transform.origin, collision_sphere.shape.radius)
 #		print(collision_sphere.global_position,collision_sphere.global_transform.origin)
-		var distance: float = test_vec.length() - collision_sphere.shape.radius
+		var test_vec2: Vector3 = collision_sphere.global_transform.affine_inverse().xform(global_transform.origin)
+		var direction: Vector3 = test_vec2 - test_vec2.normalized() * collision_sphere.shape.radius
+		var distance: float = test_vec2.length() - collision_sphere.shape.radius
+#		var distance: float = test_vec.length() - collision_sphere.shape.radius
 #		print(distance)
 		if distance < 0:
-			global_transform.origin -= test_vec.normalized() * distance
+#			global_transform.origin -= test_vec.normalized() * distance
+			global_transform.origin -= collision_sphere.to_global(direction) - collision_sphere.global_transform.origin
+#			if distance < -0.01 or distance > 0.1:
+#				return
 	
 	
 	############## Rotate the bone to point to this object #############
@@ -147,24 +159,26 @@ func process(delta: float) -> void:
 	
 	if bone_rotate_axis.length() < 1e-3:
 		return  # Already aligned, no need to rotate
+	elif bone_rotate_axis.x != bone_rotate_axis.x:
+		bone_rotate_axis = Vector3.ZERO
 	
 	bone_rotate_axis = bone_rotate_axis.normalized()
 
 	# Bring the axis to object space, WITHOUT translation (so only the BASIS is used) since vectors shouldn't be translated
 	var bone_rotate_axis_obj: Vector3 = bone_transf_obj.basis.xform(bone_rotate_axis).normalized()
-	if bone_rotate_axis_obj.length() < 1e-3:
+	if is_nan(bone_rotate_axis_obj.x) and bone_rotate_axis_obj.length() < 1e-3:
 		return
-	var bone_new_transf_obj = Transform(bone_transf_obj.basis.rotated(bone_rotate_axis_obj, bone_rotate_angle), bone_transf_obj.origin)  
-
+#	var bone_new_transf_obj: Transform = Transform(bone_transf_obj.basis.rotated(bone_rotate_axis_obj, bone_rotate_angle), bone_transf_obj.origin)  
+	var bone_new_transf_obj: Transform = Transform(bone_transf_obj.basis.rotated(bone_rotate_axis_obj, bone_rotate_angle), bone_transf_rest_obj.origin)  
+	
 	if is_nan(bone_new_transf_obj[0][0]):
 		bone_new_transf_obj = Transform()  # Corrupted somehow
 
 	skeleton.set_bone_global_pose_override(bone_id, bone_new_transf_obj, apply_percent / 100.0, true)
 	
+	
 	# Orient this object to the jigglebone
 	global_transform.basis = (skeleton.global_transform * skeleton.get_bone_global_pose(bone_id)).basis
-	
-	
 	
 
 func set_collision_shape(path:NodePath) -> void:

@@ -1,3 +1,4 @@
+#tool
 extends Spatial
 
 
@@ -12,8 +13,8 @@ extends Spatial
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	$Spatial/test.translation.z -= Input.get_axis("ui_left", "ui_right") * delta * 8.0
-	$Spatial/test.translation.y -= sin(float(get_tree().get_frame()) * 0.1) * 0.15
+	$Spatial/test.translation.y -= sin(float(get_tree().get_frame()) * 0.1) * 8.0 * delta
 	
 
