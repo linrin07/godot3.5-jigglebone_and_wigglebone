@@ -1,5 +1,6 @@
 tool
 extends Spatial
+class_name JiggleBone
 
 enum Axis {
 	X_Plus, Y_Plus, Z_Plus, X_Minus, Y_Minus, Z_Minus
@@ -14,11 +15,12 @@ export var use_gravity = false
 export var gravity = Vector3(0.0, -9.81, 0.0)
 export(Axis) var forward_axis = Axis.Z_Minus
 export(float, 0.0,1.0,0.001) var bone_y_plus = 0.1
-export(float, 0.0, 100.0, 0.1) var apply_percent = 80.0
+export(float, 0.0, 100.0, 1.0) var apply_percent = 80.0
 export(float, 0.0, 100.0, 0.01) var limitation = 10.0
 
 export var collision_shape: NodePath
 var collision_sphere: CollisionShape
+var collision_spheres: Array
 
 # Previous position
 var prev_pos = Vector3()
@@ -113,7 +115,7 @@ func process(delta: float) -> void:
 	if use_gravity:
 		grav = gravity * gravity_scale
 		
-	grav *= stiffness
+	grav *= stiffness * float(skip_frame + 1)
 	vel += grav 
 	vel -= vel * damping * delta  # Damping
 	vel = vel.limit_length(limitation)
@@ -129,23 +131,31 @@ func process(delta: float) -> void:
 	var new_pos_clamped: Vector3 = goal_pos + (global_transform.origin - goal_pos).normalized() * bone_y_plus
 	global_transform.origin = new_pos_clamped
 	
-	if collision_sphere:
-		# If bone is inside the collision sphere, push it out
-		var test_vec: Vector3 = global_transform.origin - collision_sphere.global_transform.origin
-#		var test_vec: Vector3 = goal_pos - collision_sphere.global_transform.origin
-#		print(collision_sphere.global_transform.origin, collision_sphere.shape.radius)
-#		print(collision_sphere.global_position,collision_sphere.global_transform.origin)
-		var test_vec2: Vector3 = collision_sphere.global_transform.affine_inverse().xform(global_transform.origin)
-		var direction: Vector3 = test_vec2 - test_vec2.normalized() * collision_sphere.shape.radius
-		var distance: float = test_vec2.length() - collision_sphere.shape.radius
-#		var distance: float = test_vec.length() - collision_sphere.shape.radius
-#		print(distance)
-		if distance < 0:
-#			global_transform.origin -= test_vec.normalized() * distance
-			global_transform.origin -= collision_sphere.to_global(direction) - collision_sphere.global_transform.origin
-#			if distance < -0.01 or distance > 0.1:
-#				return
+#	if collision_sphere:
+#		# If bone is inside the collision sphere, push it out
+#		var test_vec: Vector3 = global_transform.origin - collision_sphere.global_transform.origin
+##		var test_vec: Vector3 = goal_pos - collision_sphere.global_transform.origin
+##		print(collision_sphere.global_transform.origin, collision_sphere.shape.radius)
+##		print(collision_sphere.global_position,collision_sphere.global_transform.origin)
+#		var test_vec2: Vector3 = collision_sphere.global_transform.affine_inverse().xform(global_transform.origin)
+#		var direction: Vector3 = test_vec2 - test_vec2.normalized() * collision_sphere.shape.radius
+#		var distance: float = test_vec2.length() - collision_sphere.shape.radius
+##		var distance: float = test_vec.length() - collision_sphere.shape.radius
+##		print(distance)
+#		if distance < 0:
+##			global_transform.origin -= test_vec.normalized() * distance
+#			global_transform.origin -= collision_sphere.to_global(direction) - collision_sphere.global_transform.origin
+##			if distance < -0.01 or distance > 0.1:
+##				return
 	
+	if collision_spheres.size() > 0:
+		for col_sph in collision_spheres:
+			var test_vec: Vector3 = (col_sph as CollisionShape).global_transform.affine_inverse().xform(global_position)
+			var direction: Vector3 = test_vec - test_vec.normalized() * (col_sph.shape as SphereShape).radius
+			var distance = test_vec.length() - (col_sph.shape as SphereShape).radius
+			if distance < 0.0:
+				global_position -= col_sph.to_global(direction) - col_sph.global_position
+		
 	
 	############## Rotate the bone to point to this object #############
 
@@ -186,4 +196,12 @@ func set_collision_shape(path:NodePath) -> void:
 	collision_sphere = get_node_or_null(path)
 	if collision_sphere:
 		assert(collision_sphere is CollisionShape and collision_sphere.shape is SphereShape, "%s: Only SphereShapes are supported for CollisionShapes" % [ name ])
+		add_collision_shape(collision_sphere)
+
+func add_collision_shape(col_shape: CollisionShape) -> void:
+	if not col_shape:
+		return
+	if not col_shape.shape is SphereShape:
+		return
+	collision_spheres.append(col_shape)
 

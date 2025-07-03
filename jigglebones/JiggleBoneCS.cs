@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 [Tool]
+
 public partial class JiggleBoneCS : Spatial
 {
     // Declare member variables here. Examples:
@@ -168,7 +169,7 @@ public partial class JiggleBoneCS : Spatial
             grav = gravity * gravity_scale;
         }
 
-        grav *= stiffness;
+        grav *= stiffness * (float)(skip_frame + 1);
         vel += grav;
         vel -= vel * damping * delta; //Damping
         vel = vel.LimitLength(limitation);

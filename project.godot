@@ -9,12 +9,18 @@
 config_version=4
 
 _global_script_classes=[ {
+"base": "Spatial",
+"class": "JiggleBone",
+"language": "GDScript",
+"path": "res://jigglebones/jigglebone.gd"
+}, {
 "base": "BoneAttachment",
 "class": "Wigglebone",
 "language": "GDScript",
 "path": "res://jigglebones/wigglebone.gd"
 } ]
 _global_script_class_icons={
+"JiggleBone": "",
 "Wigglebone": ""
 }
 
