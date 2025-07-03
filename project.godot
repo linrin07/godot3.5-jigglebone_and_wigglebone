@@ -30,6 +30,10 @@ config/name="JiggleWiggleBone"
 run/main_scene="res://Test.tscn"
 config/icon="res://icon.png"
 
+[debug]
+
+settings/fps/force_fps=120
+
 [editor]
 
 version_control_autoload_on_startup=true
