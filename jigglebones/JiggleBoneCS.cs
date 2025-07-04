@@ -261,7 +261,8 @@ public partial class JiggleBoneCS : Spatial
         if (frame > skip_frame)
         {
             frame = 0;
-            float factor = (float)Convert.ToDecimal(1 + skip_frame);
+            // float factor = (float)Convert.ToDecimal(1 + skip_frame);
+            float factor = 1.0f + skip_frame;
             CallDeferred("JiggleBoneProcess", delta * factor);
         }
     }

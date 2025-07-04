@@ -3,7 +3,7 @@ class_name Wigglebone extends BoneAttachment
 
 export var enable: bool = true
 export(float, 0.01, 10, 0.01) var stiffness = 0.1
-export(float, 0, 10, 0.01) var damping = 0.1
+export(float, 0, 1, 0.01) var damping = 0.1
 export(float, 0, 10, 0.01) var gravity_scale = 1.0
 export var use_gravity = false
 export var gravity = Vector3(0.0, -9.81, 0.0)
@@ -11,7 +11,7 @@ export(float, 0.0, 100.0, 1.0) var apply_percent = 80.0
 export(float, 0.0, 1.0, 0.001) var length = 0.1
 export(float, 0.01, 1, 0.01) var max_distance = 0.1
 
-export var skip_frame: int = 0
+export(int, 0, 10) var skip_frame = 0
 var frame: int = 0
 var _point_mass := PointMass.new()
 var _acceleration :Vector3= Vector3.ZERO
@@ -32,7 +32,7 @@ func _ready() -> void:
 		prev_pos = global_transform.origin
 		
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	frame += 1
 	if frame > skip_frame:
 		frame = 0
@@ -78,13 +78,15 @@ func process(delta: float) -> void:
 	_global_to_pose = global_bone_pose.basis.inverse()
 
 	var new_acceleration :Vector3 = _update_acceleration(global_bone_pose, delta)
-	_acceleration = _acceleration.linear_interpolate(new_acceleration, 30.0 * delta)
+	_acceleration = _acceleration.linear_interpolate(new_acceleration, 0.5)
 
 	# adjust for varying framerates
-#	# this is only an approximation
-	var delta_factor : float = log(delta * 60.0) / log(2.0) + 1.0
-	_acceleration /= clamp(delta_factor, 1.0, 3.0) # TODO: adjust for rates higher than 60 fps
-
+	# this is only an approximation
+#	var delta_factor : float = log(delta * 60.0) / log(2.0) + 1.0
+#	_acceleration /= clamp(delta_factor, 1.0, 3.0) # TODO: adjust for rates higher than 60 fps
+	
+	_acceleration /= float(skip_frame + 1)
+	
 	var pose : Transform = bone_pose * _pose()
 	
 	skeleton.set_bone_global_pose_override(bone_id, pose, apply_percent / 100.0, true)
@@ -108,14 +110,16 @@ class PointMass:
 	var v := Vector3.ZERO
 	var a := Vector3.ZERO
 
-	func solve(stiffness: float, damping: float, delta: float) -> void:
+	func solve(stiffness: float, damping: float, delta: float, factor: float = 1.0) -> void:
 		# inertia
-		v = v * (1.0 - damping) + a * delta
-		p += v
+#		v = v * (1.0 - damping) + a * delta
+#		p += v
+		p += v * clamp(1.0 - damping, 0.0, 1.0) + a * delta
 		a = Vector3.ZERO
-
+		
+		v = v * clamp(1.0 - damping*factor, 0.0, 1.0) + a * delta
 		# constraint
-		v -= p * stiffness
+		v -= p * stiffness*factor 
 
 	func accelerate(acc: Vector3, delta: float) -> void:
 		v += acc * delta
@@ -167,4 +171,4 @@ func _solve(global_to_local: Basis, acceleration: Vector3, delta: float) -> void
 	var local_acc := global_to_local * acceleration
 	_point_mass.accelerate(local_acc, delta)
 	_point_mass.apply_force(local_force)
-	_point_mass.solve(stiffness, damping, delta)
+	_point_mass.solve(stiffness, damping, delta, float(skip_frame + 1))

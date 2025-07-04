@@ -140,7 +140,7 @@ bones/5/name = "wiggle_bone"
 bones/5/parent = 4
 bones/5/rest = Transform( 1, 9.32883e-17, 1.42109e-14, -9.32883e-17, 1, 6.1781e-10, -1.42109e-14, -6.1781e-10, 1, -7.06727e-15, 0.746133, -1.19462e-07 )
 bones/5/enabled = true
-bones/5/bound_children = [ NodePath("Wigglebone"), NodePath("WiggleBoneCS") ]
+bones/5/bound_children = [ NodePath("WiggleBoneCS") ]
 
 [node name="Sphere" type="MeshInstance" parent="Spatial/test/Armature/Skeleton"]
 mesh = SubResource( 4 )
@@ -164,7 +164,7 @@ transform = Transform( 1, -5.32907e-15, 0, 0, 1, -2.30926e-14, 0, -3.55271e-15, 
 shape = SubResource( 9 )
 
 [node name="Jigglebone1" type="Spatial" parent="Spatial/test/Armature/Skeleton"]
-transform = Transform( 1, -3.8014e-13, 2.38418e-07, -8.24062e-08, -0.938369, 0.345636, 2.23724e-07, -0.345636, -0.938369, -2.98428e-13, 2.40478, -0.792653 )
+transform = Transform( 1, -2.27374e-13, 2.38418e-07, -8.19596e-08, -0.939056, 0.343763, 2.23888e-07, -0.343763, -0.939056, -1.06581e-13, 2.40208, -0.790279 )
 script = ExtResource( 1 )
 bone_name = "jiggle_bone1"
 stiffness = 0.5
@@ -174,9 +174,10 @@ use_gravity = true
 forward_axis = 1
 bone_y_plus = 1.0
 collision_shape = NodePath("../BoneAttachment/CollisionShape")
+skip_frame = 2
 
 [node name="Jigglebone2CS" type="Spatial" parent="Spatial/test/Armature/Skeleton"]
-transform = Transform( 1, 1.52767e-13, 2.38418e-07, -1.68136e-08, -0.997511, 0.0705222, 2.37825e-07, -0.0705222, -0.997511, -1.95399e-13, 1.48008, -1.08451 )
+transform = Transform( 1, -4.44089e-14, 2.38418e-07, -1.67194e-08, -0.997538, 0.0701262, 2.37831e-07, -0.0701262, -0.997538, -2.98428e-13, 1.47941, -1.08267 )
 script = ExtResource( 4 )
 bone_name = "jiggle_bone2"
 stiffness = 0.5
@@ -186,10 +187,10 @@ use_gravity = true
 forward_axis = 1
 bone_y_plus = 1.0
 collision_shape = NodePath("../BoneAttachment2/CollisionShape2")
+skip_frame = 2
 
 [node name="Wigglebone" type="BoneAttachment" parent="Spatial/test/Armature/Skeleton"]
-transform = Transform( 1, 4.26326e-14, 1.50996e-07, 1.50996e-07, -3.57628e-07, -1, 7.10543e-15, 1, -3.57628e-07, 5.37295e-13, 1.42682, 0.40898 )
-bone_name = "wiggle_bone"
+transform = Transform( 1, 1.00897e-12, 1.50996e-07, 1.50996e-07, -2.97406e-07, -1, -9.32841e-17, 1, -2.97406e-07, 5.35874e-13, 1.53559, 0.40898 )
 script = ExtResource( 3 )
 enable = false
 stiffness = 0.2
@@ -197,9 +198,10 @@ damping = 0.25
 gravity_scale = 0.1
 use_gravity = true
 max_distance = 0.5
+skip_frame = 4
 
 [node name="WiggleBoneCS" type="BoneAttachment" parent="Spatial/test/Armature/Skeleton"]
-transform = Transform( 1, 4.26326e-14, 1.50996e-07, 1.50996e-07, -3.57628e-07, -1, 7.10543e-15, 1, -3.57628e-07, 5.37295e-13, 1.42682, 0.40898 )
+transform = Transform( 1, 4.26326e-14, 1.50996e-07, 1.50996e-07, -3.57628e-07, -1, 7.10543e-15, 1, -3.57628e-07, 5.35164e-13, 1.47019, 0.40898 )
 bone_name = "wiggle_bone"
 script = ExtResource( 5 )
 stiffness = 0.2

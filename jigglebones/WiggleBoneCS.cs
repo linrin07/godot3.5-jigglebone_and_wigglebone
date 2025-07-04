@@ -6,7 +6,7 @@ public class WiggleBoneCS : BoneAttachment
 {
     [Export] public bool enable = true;
     [Export(PropertyHint.Range, "0.01,10,0.01")] public float stiffness = 0.1f;
-    [Export(PropertyHint.Range, "0,10,0.01")] public float damping = 0.1f;
+    [Export(PropertyHint.Range, "0,1,0.01")] public float damping = 0.1f;
     [Export(PropertyHint.Range, "0,10,0.01")] public float gravity_scale = 1.0f;
     [Export] public bool use_gravity = false;
     [Export] public Vector3 gravity = new Vector3(0.0f, -9.81f, 0.0f);
@@ -14,7 +14,7 @@ public class WiggleBoneCS : BoneAttachment
     [Export(PropertyHint.Range, "0.0,1.0,0.001")] public float length = 0.1f;
     [Export(PropertyHint.Range, "0.01,1,0.01")] public float max_distance = 0.1f;
 
-    [Export] public int skip_frame = 0;
+    [Export(PropertyHint.Range, "0, 10")] public int skip_frame = 0;
 
     public string bone_name = "";
     private int frame = 0;
@@ -37,7 +37,7 @@ public class WiggleBoneCS : BoneAttachment
         }
     }
 
-    public override void _Process(float delta)
+    public override void _PhysicsProcess(float delta)
     {
         if (!enable)
             return;
@@ -45,8 +45,9 @@ public class WiggleBoneCS : BoneAttachment
         if (frame > skip_frame)
         {
             frame = 0;
-            Process(delta * (float)Convert.ToDecimal(1 + skip_frame));
-            
+            // Process(delta * (float)Convert.ToDecimal(1 + skip_frame));
+            Process(delta * (float)(1 + skip_frame));
+
         }
     }
 
@@ -99,12 +100,14 @@ public class WiggleBoneCS : BoneAttachment
         _global_to_pose = globalBonePose.basis.Inverse();
 
         Vector3 newAcceleration = _update_acceleration(globalBonePose, delta);
-        _acceleration = _acceleration.LinearInterpolate(newAcceleration, 30.0f * delta);
+        _acceleration = _acceleration.LinearInterpolate(newAcceleration, 0.5f);
 
         //adjust for varying framerates
         //this is only an approximation
-        float deltaFactor = Mathf.Log(delta * 60.0f) / Mathf.Log(2.0f) + 1.0f;
-        _acceleration /= Mathf.Clamp(deltaFactor, 1.0f, 3.0f);
+        // float deltaFactor = Mathf.Log(delta * 60.0f) / Mathf.Log(2.0f) + 1.0f;
+        // _acceleration /= Mathf.Clamp(deltaFactor, 1.0f, 3.0f);
+
+        _acceleration /= (float)(skip_frame) + 1.0f;
 
         Transform pose = bonePose * _pose();
         
@@ -184,7 +187,7 @@ public class WiggleBoneCS : BoneAttachment
         Vector3 localAcc = globalToLocal * acceleration;
         _point_mass.Accelerate(localAcc, delta);
         _point_mass.ApplyForce(localForce);
-        _point_mass.Solve(stiffness, damping, delta);
+        _point_mass.Solve(stiffness, damping, delta, (float)(skip_frame + 1));
     }
 
     private class PointMass
@@ -193,15 +196,16 @@ public class WiggleBoneCS : BoneAttachment
         public Vector3 V = Vector3.Zero;
         public Vector3 A = Vector3.Zero;
 
-        public void Solve(float stiffness, float damping, float delta)
+        public void Solve(float stiffness, float damping, float delta, float factor = 1.0f)
         {
             //ineria
-            V = V * (1.0f - damping) + A * delta;
-            P += V;
+            // V = V * (1.0f - damping) + A * delta;
+            // P += V;
+            P += V * Mathf.Clamp(1.0f - damping, 0.0f, 1.0f) + (A * delta);
             A = Vector3.Zero;
-
+            V = V * Mathf.Clamp(1.0f - damping * factor, 0.0f, 1.0f) + (A * delta);
             // constraint
-            V -= P * stiffness;
+            V -= P * stiffness * factor;
         }
 
         public void Accelerate(Vector3 acc, float delta)
